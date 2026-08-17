@@ -1,0 +1,33 @@
+# Environments
+venv/
+env/
+.venv/
+.env
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Data and Large Files
+# Ignore data and models to prevent pushing massive files to GitHub
+data/raw/
+data/processed/
+models/
+*.pt
+*.bin
+*.h5
+*.csv
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
