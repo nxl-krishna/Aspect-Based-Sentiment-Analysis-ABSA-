@@ -1,6 +1,5 @@
-import streamlit as st
+import gradio as gr
 import pandas as pd
-import io
 import plotly.express as px
 import sys
 import os
@@ -9,162 +8,105 @@ import os
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 from src.inference.infer import ABSA_Inferencer
 
-# Configure page settings
-st.set_page_config(
-    page_title="Customer Feedback Intelligence",
-    page_icon="🧠",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+print("Loading DeBERTa-v3 Model (this might take a minute on startup)...")
+try:
+    inferencer = ABSA_Inferencer()
+    print("Model loaded successfully!")
+except Exception as e:
+    print(f"Error loading model: {e}")
+    inferencer = None
 
-# Custom CSS for dark mode premium aesthetics
-st.markdown("""
-<style>
-    /* Main Background */
-    .stApp {
-        background-color: #0f1115;
-        color: #ffffff;
-    }
-    
-    /* Headers */
-    h1, h2, h3 {
-        color: #4facfe;
-        font-family: 'Inter', sans-serif;
-    }
-    
-    /* Input Boxes */
-    .stTextInput > div > div > input {
-        background-color: #1e2229;
-        color: #ffffff;
-        border: 1px solid #333945;
-        border-radius: 8px;
-    }
-    
-    /* Upload Box */
-    .stFileUploader > div > div {
-        background-color: #1e2229;
-        border-radius: 8px;
-    }
-    
-    /* Dataframes */
-    .stDataFrame {
-        border: 1px solid #333945;
-        border-radius: 8px;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-# Application Header
-st.title("🧠 Customer Feedback Intelligence")
-st.markdown("### Aspect-Based Sentiment Analysis (ABSA) powered by Transformers")
-st.write("Extract precise sentiments directed at specific aspects of a product or service.")
-st.markdown("---")
-
-# Cache the model so it only loads once per session
-@st.cache_resource
-def load_model():
-    return ABSA_Inferencer()
-
-with st.spinner("Loading DeBERTa-v3 Model (this takes a moment on startup)..."):
+def analyze_single(text, aspect):
+    if not inferencer:
+        return "Error: Model failed to load."
+    if not text or not aspect:
+        return "Please provide both a review and an aspect."
     try:
-        inferencer = load_model()
-    except Exception as e:
-        st.error(f"Error loading model: {e}")
-        st.stop()
-
-tab1, tab2 = st.tabs(["💬 Single Review Analysis", "📊 Batch Analytics"])
-
-# ----------------- TAB 1: SINGLE REVIEW -----------------
-with tab1:
-    st.header("Analyze a Single Review")
-    
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        text_input = st.text_area("Customer Review", "The battery life is incredible but the screen is too dim.", height=150)
-    with col2:
-        aspect_input = st.text_input("Aspect to Analyze", "battery life")
-        analyze_btn = st.button("Predict Sentiment", type="primary", use_container_width=True)
+        res = inferencer.predict(text, aspect)
+        sentiment = res['sentiment']
+        conf = res['confidence']
         
-    if analyze_btn:
-        if not text_input or not aspect_input:
-            st.warning("Please provide both a review and an aspect.")
-        else:
-            with st.spinner("Analyzing..."):
-                try:
-                    res = inferencer.predict(text_input, aspect_input)
-                    sentiment = res['sentiment']
-                    conf = res['confidence']
-                    
-                    st.markdown("### Prediction Results")
-                    
-                    # Color coding
-                    color = "green" if sentiment == "Positive" else "red" if sentiment == "Negative" else "gray"
-                    
-                    st.markdown(f"""
-                    <div style="background-color: #1e2229; padding: 20px; border-radius: 10px; border-left: 5px solid {color};">
-                        <h4>Target Aspect: <span style="color: #4facfe;">{aspect_input}</span></h4>
-                        <h2>Sentiment: <span style="color: {color};">{sentiment}</span> ({conf}%)</h2>
-                    </div>
-                    """, unsafe_allow_html=True)
-                except Exception as e:
-                    st.error(f"Error during prediction: {e}")
+        color = "green" if sentiment == "Positive" else "red" if sentiment == "Negative" else "gray"
+        
+        html_out = f"""
+        <div style="background-color: #1e2229; padding: 20px; border-radius: 10px; border-left: 5px solid {color}; color: white;">
+            <h4>Target Aspect: <span style="color: #4facfe;">{aspect}</span></h4>
+            <h2>Sentiment: <span style="color: {color};">{sentiment}</span> ({conf}%)</h2>
+        </div>
+        """
+        return html_out
+    except Exception as e:
+        return f"Error: {str(e)}"
 
-# ----------------- TAB 2: BATCH ANALYTICS -----------------
-with tab2:
-    st.header("Batch Upload & Analytics")
-    st.markdown("Upload a CSV with `text` and `aspect` columns to process hundreds of reviews instantly.")
-    
-    uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
-    
-    if uploaded_file is not None:
-        if st.button("Run Batch Inference", type="primary"):
-            with st.spinner("Processing batch locally..."):
-                try:
-                    df = pd.read_csv(uploaded_file)
-                    if 'text' not in df.columns or 'aspect' not in df.columns:
-                        st.error("CSV must contain 'text' and 'aspect' columns.")
-                    else:
-                        results_df = inferencer.batch_predict(df)
-                        
-                        # Calculate aggregate analytics
-                        sentiment_counts = results_df['sentiment'].value_counts().to_dict()
-                        top_positive = results_df[results_df['sentiment'] == 'Positive']['aspect'].value_counts().head(5).to_dict()
-                        top_negative = results_df[results_df['sentiment'] == 'Negative']['aspect'].value_counts().head(5).to_dict()
-                        
-                        summary = {
-                            "total_analyzed": len(results_df),
-                            "sentiment_breakdown": sentiment_counts,
-                            "top_positive_aspects": top_positive,
-                            "top_negative_aspects": top_negative
-                        }
-                        
-                        st.success(f"Successfully analyzed {summary['total_analyzed']} reviews!")
-                        
-                        # Visualizations
-                        st.markdown("### Executive Summary")
-                        c1, c2 = st.columns(2)
-                        
-                        with c1:
-                            # Pie chart for sentiments
-                            fig1 = px.pie(
-                                names=list(summary['sentiment_breakdown'].keys()),
-                                values=list(summary['sentiment_breakdown'].values()),
-                                title="Overall Sentiment Distribution",
-                                color_discrete_sequence=['#4caf50', '#f44336', '#9e9e9e'],
-                                hole=0.4
-                            )
-                            fig1.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color="white"))
-                            st.plotly_chart(fig1, use_container_width=True)
-                            
-                        with c2:
-                            # Top positive aspects
-                            pos_df = pd.DataFrame(list(summary['top_positive_aspects'].items()), columns=['Aspect', 'Count'])
-                            if not pos_df.empty:
-                                fig2 = px.bar(pos_df, x='Count', y='Aspect', orientation='h', title="Top Positive Aspects", color_discrete_sequence=['#4caf50'])
-                                fig2.update_layout(yaxis={'categoryorder':'total ascending'}, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color="white"))
-                                st.plotly_chart(fig2, use_container_width=True)
+def analyze_batch(file_obj):
+    if not inferencer:
+        return pd.DataFrame([{"Error": "Model failed to load"}]), None, None
+    if file_obj is None:
+        return pd.DataFrame(), None, None
+    try:
+        df = pd.read_csv(file_obj.name)
+        if 'text' not in df.columns or 'aspect' not in df.columns:
+            return pd.DataFrame([{"Error": "CSV must contain 'text' and 'aspect' columns"}]), None, None
+            
+        results_df = inferencer.batch_predict(df)
+        
+        sentiment_counts = results_df['sentiment'].value_counts().to_dict()
+        top_positive = results_df[results_df['sentiment'] == 'Positive']['aspect'].value_counts().head(5).to_dict()
+        
+        # Pie chart
+        fig1 = px.pie(
+            names=list(sentiment_counts.keys()),
+            values=list(sentiment_counts.values()),
+            title="Overall Sentiment Distribution",
+            color_discrete_sequence=['#4caf50', '#f44336', '#9e9e9e']
+        )
+        fig1.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color="white"))
+        
+        # Bar chart
+        pos_df = pd.DataFrame(list(top_positive.items()), columns=['Aspect', 'Count'])
+        fig2 = None
+        if not pos_df.empty:
+            fig2 = px.bar(pos_df, x='Count', y='Aspect', orientation='h', title="Top Positive Aspects", color_discrete_sequence=['#4caf50'])
+            fig2.update_layout(yaxis={'categoryorder':'total ascending'}, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color="white"))
+            
+        return results_df, fig1, fig2
+    except Exception as e:
+        return pd.DataFrame([{"Error": str(e)}]), None, None
 
-                        st.markdown("### Raw Results")
-                        st.dataframe(results_df, use_container_width=True)
-                except Exception as e:
-                    st.error(f"Error during batch processing: {e}")
+css = """
+body, .gradio-container { background-color: #0f1115 !important; color: white !important; font-family: 'Inter', sans-serif !important; }
+h1, h2, h3 { color: #4facfe !important; }
+"""
+
+with gr.Blocks(theme=gr.themes.Soft(), css=css) as demo:
+    gr.Markdown("# 🧠 Customer Feedback Intelligence")
+    gr.Markdown("### Aspect-Based Sentiment Analysis (ABSA) powered by Transformers")
+    gr.Markdown("Extract precise sentiments directed at specific aspects of a product or service.")
+    
+    with gr.Tabs():
+        with gr.TabItem("💬 Single Review Analysis"):
+            with gr.Row():
+                with gr.Column(scale=2):
+                    text_input = gr.Textbox(label="Customer Review", lines=5, value="The battery life is incredible but the screen is too dim.")
+                with gr.Column(scale=1):
+                    aspect_input = gr.Textbox(label="Aspect to Analyze", value="battery life")
+                    analyze_btn = gr.Button("Predict Sentiment", variant="primary")
+            
+            output_html = gr.HTML("### Prediction Results will appear here.")
+            analyze_btn.click(fn=analyze_single, inputs=[text_input, aspect_input], outputs=output_html)
+            
+        with gr.TabItem("📊 Batch Analytics"):
+            gr.Markdown("Upload a CSV with `text` and `aspect` columns to process hundreds of reviews instantly.")
+            file_upload = gr.File(label="Upload CSV", file_types=['.csv'])
+            batch_btn = gr.Button("Run Batch Inference", variant="primary")
+            
+            with gr.Row():
+                pie_chart = gr.Plot(label="Sentiment Distribution")
+                bar_chart = gr.Plot(label="Top Positive Aspects")
+                
+            data_output = gr.Dataframe(label="Raw Results")
+            
+            batch_btn.click(fn=analyze_batch, inputs=file_upload, outputs=[data_output, pie_chart, bar_chart])
+
+if __name__ == "__main__":
+    demo.launch()
