@@ -55,7 +55,9 @@ st.markdown("### Aspect-Based Sentiment Analysis (ABSA) powered by Transformers"
 st.write("Extract precise sentiments directed at specific aspects of a product or service.")
 st.markdown("---")
 
-API_URL = "http://localhost:8000"
+import os
+
+API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 tab1, tab2 = st.tabs(["💬 Single Review Analysis", "📊 Batch Analytics"])
 
