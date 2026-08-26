@@ -1,3 +1,12 @@
+---
+title: Customer Feedback Intelligence
+emoji: 🧠
+colorFrom: blue
+colorTo: indigo
+sdk: gradio
+app_file: app.py
+pinned: false
+---
 # Customer Feedback Intelligence: Aspect-Based Sentiment Analysis
 
 An end-to-end Machine Learning pipeline that identifies specific aspects within customer reviews and extracts the sentiment directed at those exact aspects. Built from scratch moving from classical NLP to State-of-the-Art Transformers.
