@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 import sys
 import os
+import spaces
 
 # Ensure src modules can be imported
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
@@ -16,6 +17,7 @@ except Exception as e:
     print(f"Error loading model: {e}")
     inferencer = None
 
+@spaces.GPU
 def analyze_single(text, aspect):
     if not inferencer:
         return "Error: Model failed to load."
@@ -38,6 +40,7 @@ def analyze_single(text, aspect):
     except Exception as e:
         return f"Error: {str(e)}"
 
+@spaces.GPU
 def analyze_batch(file_obj):
     if not inferencer:
         return pd.DataFrame([{"Error": "Model failed to load"}]), None, None
