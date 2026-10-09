@@ -43,13 +43,12 @@ def generate_bio_tags(text: str, aspect: str, from_idx: int, to_idx: int):
     doc = nlp(text)
     tags = []
     
+    inside = False
     for token in doc:
         # Check if the token's character offsets overlap with the aspect's offsets
-        if token.idx >= from_idx and (token.idx + len(token.text)) <= to_idx:
-            if token.idx == from_idx:
-                tags.append((token.text, "B-ASP"))
-            else:
-                tags.append((token.text, "I-ASP"))
+        if token.idx < to_idx and (token.idx + len(token.text)) > from_idx:
+            tags.append((token.text, "I-ASP" if inside else "B-ASP"))
+            inside = True
         else:
             tags.append((token.text, "O"))
             

@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
 import requests
-import io
+import html
+import os
 import plotly.express as px
 
 # Configure page settings
@@ -55,8 +56,6 @@ st.markdown("### Aspect-Based Sentiment Analysis (ABSA) powered by Transformers"
 st.write("Extract precise sentiments directed at specific aspects of a product or service.")
 st.markdown("---")
 
-import os
-
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 tab1, tab2 = st.tabs(["💬 Single Review Analysis", "📊 Batch Analytics"])
@@ -73,12 +72,12 @@ with tab1:
         analyze_btn = st.button("Predict Sentiment", type="primary", use_container_width=True)
         
     if analyze_btn:
-        if not text_input or not aspect_input:
+        if not text_input.strip() or not aspect_input.strip():
             st.warning("Please provide both a review and an aspect.")
         else:
             with st.spinner("Analyzing with DeBERTa-v3..."):
                 try:
-                    res = requests.post(f"{API_URL}/analyze", json={"text": text_input, "aspect": aspect_input})
+                    res = requests.post(f"{API_URL}/analyze", json={"text": text_input, "aspect": aspect_input}, timeout=60)
                     if res.status_code == 200:
                         data = res.json()
                         sentiment = data['sentiment']
@@ -91,7 +90,7 @@ with tab1:
                         
                         st.markdown(f"""
                         <div style="background-color: #1e2229; padding: 20px; border-radius: 10px; border-left: 5px solid {color};">
-                            <h4>Target Aspect: <span style="color: #4facfe;">{aspect_input}</span></h4>
+                            <h4>Target Aspect: <span style="color: #4facfe;">{html.escape(aspect_input)}</span></h4>
                             <h2>Sentiment: <span style="color: {color};">{sentiment}</span> ({conf}%)</h2>
                         </div>
                         """, unsafe_allow_html=True)
@@ -111,8 +110,8 @@ with tab2:
         if st.button("Run Batch Inference", type="primary"):
             with st.spinner("Processing batch via API..."):
                 try:
-                    files = {"file": ("data.csv", uploaded_file, "text/csv")}
-                    res = requests.post(f"{API_URL}/batch-analyze", files=files)
+                    files = {"file": ("data.csv", uploaded_file.getvalue(), "text/csv")}
+                    res = requests.post(f"{API_URL}/batch-analyze", files=files, timeout=600)
                     
                     if res.status_code == 200:
                         data = res.json()
@@ -131,7 +130,8 @@ with tab2:
                                 names=list(summary['sentiment_breakdown'].keys()),
                                 values=list(summary['sentiment_breakdown'].values()),
                                 title="Overall Sentiment Distribution",
-                                color_discrete_sequence=['#4caf50', '#f44336', '#9e9e9e'],
+                                color=list(summary['sentiment_breakdown'].keys()),
+                                color_discrete_map={'Positive': '#4caf50', 'Negative': '#f44336', 'Neutral': '#9e9e9e'},
                                 hole=0.4
                             )
                             fig1.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color="white"))

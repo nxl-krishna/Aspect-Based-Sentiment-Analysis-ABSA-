@@ -27,48 +27,58 @@ class ABSA_Inferencer:
         self.id2label = {0: 'Negative', 1: 'Neutral', 2: 'Positive'}
         print("Model loaded successfully!")
 
+    def _predict_pairs(self, texts, aspects):
+        # The model natively accepts Text and Aspect separated by SEP token.
+        # truncation="only_first" so a long review never cuts off the aspect.
+        inputs = self.tokenizer(
+            texts,
+            text_pair=aspects,
+            return_tensors="pt",
+            padding=True,
+            truncation="only_first",
+            max_length=128
+        ).to(self.device)
+
+        with torch.no_grad():
+            outputs = self.model(**inputs)
+
+        probs = torch.nn.functional.softmax(outputs.logits, dim=-1)
+        confidences, pred_idxs = probs.max(dim=-1)
+
+        return [
+            {
+                "text": text,
+                "aspect": aspect,
+                "sentiment": self.id2label[idx],
+                "confidence": round(conf * 100, 2)
+            }
+            for text, aspect, idx, conf in zip(texts, aspects, pred_idxs.tolist(), confidences.tolist())
+        ]
+
     def predict(self, text: str, aspect: str):
         """
         Predict sentiment for a single text-aspect pair.
         """
-        # The model natively accepts Text and Aspect separated by SEP token
-        inputs = self.tokenizer(
-            text,
-            text_pair=aspect,
-            return_tensors="pt",
-            truncation=True,
-            max_length=128
-        ).to(self.device)
-        
-        with torch.no_grad():
-            outputs = self.model(**inputs)
-            
-        probs = torch.nn.functional.softmax(outputs.logits, dim=-1)
-        pred_idx = torch.argmax(probs, dim=-1).item()
-        confidence = probs[0][pred_idx].item()
-        
-        return {
-            "text": text,
-            "aspect": aspect,
-            "sentiment": self.id2label[pred_idx],
-            "confidence": round(confidence * 100, 2)
-        }
+        return self._predict_pairs([text], [aspect])[0]
 
-    def batch_predict(self, df: pd.DataFrame):
+    def batch_predict(self, df: pd.DataFrame, batch_size: int = 32):
         """
         Predict sentiment for a batch of reviews in a DataFrame.
         Expects columns: ['text', 'aspect']
         """
         if 'text' not in df.columns or 'aspect' not in df.columns:
             raise ValueError("CSV must contain 'text' and 'aspect' columns.")
-            
+
+        df = df[['text', 'aspect']].dropna()
+        df = df[(df['text'].astype(str).str.strip() != '') & (df['aspect'].astype(str).str.strip() != '')]
+        texts = df['text'].astype(str).tolist()
+        aspects = df['aspect'].astype(str).tolist()
+
         results = []
-        # For a production app, we would batch this. For demo purposes, sequential is fine.
-        for _, row in df.iterrows():
-            res = self.predict(str(row['text']), str(row['aspect']))
-            results.append(res)
-            
-        return pd.DataFrame(results)
+        for start in range(0, len(texts), batch_size):
+            results.extend(self._predict_pairs(texts[start:start + batch_size], aspects[start:start + batch_size]))
+
+        return pd.DataFrame(results, columns=["text", "aspect", "sentiment", "confidence"])
 
 if __name__ == "__main__":
     # Simple test

@@ -1,13 +1,16 @@
+import spaces
+import html
 import gradio as gr
 import pandas as pd
 import plotly.express as px
 import sys
 import os
-import spaces
 
 # Ensure src modules can be imported
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 from src.inference.infer import ABSA_Inferencer
+
+SENTIMENT_COLORS = {'Positive': '#4caf50', 'Negative': '#f44336', 'Neutral': '#9e9e9e'}
 
 print("Loading DeBERTa-v3 Model (this might take a minute on startup)...")
 try:
@@ -21,7 +24,7 @@ except Exception as e:
 def analyze_single(text, aspect):
     if not inferencer:
         return "Error: Model failed to load."
-    if not text or not aspect:
+    if not text or not text.strip() or not aspect or not aspect.strip():
         return "Please provide both a review and an aspect."
     try:
         res = inferencer.predict(text, aspect)
@@ -32,7 +35,7 @@ def analyze_single(text, aspect):
         
         html_out = f"""
         <div style="background-color: #1e2229; padding: 20px; border-radius: 10px; border-left: 5px solid {color}; color: white;">
-            <h4>Target Aspect: <span style="color: #4facfe;">{aspect}</span></h4>
+            <h4>Target Aspect: <span style="color: #4facfe;">{html.escape(aspect)}</span></h4>
             <h2>Sentiment: <span style="color: {color};">{sentiment}</span> ({conf}%)</h2>
         </div>
         """
@@ -47,11 +50,14 @@ def analyze_batch(file_obj):
     if file_obj is None:
         return pd.DataFrame(), None, None
     try:
-        df = pd.read_csv(file_obj.name)
+        file_path = file_obj if isinstance(file_obj, str) else file_obj.name
+        df = pd.read_csv(file_path, encoding='utf-8-sig')
         if 'text' not in df.columns or 'aspect' not in df.columns:
             return pd.DataFrame([{"Error": "CSV must contain 'text' and 'aspect' columns"}]), None, None
             
         results_df = inferencer.batch_predict(df)
+        if results_df.empty:
+            return pd.DataFrame([{"Error": "No rows with both 'text' and 'aspect' filled in"}]), None, None
         
         sentiment_counts = results_df['sentiment'].value_counts().to_dict()
         top_positive = results_df[results_df['sentiment'] == 'Positive']['aspect'].value_counts().head(5).to_dict()
@@ -61,7 +67,8 @@ def analyze_batch(file_obj):
             names=list(sentiment_counts.keys()),
             values=list(sentiment_counts.values()),
             title="Overall Sentiment Distribution",
-            color_discrete_sequence=['#4caf50', '#f44336', '#9e9e9e']
+            color=list(sentiment_counts.keys()),
+            color_discrete_map=SENTIMENT_COLORS
         )
         fig1.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font=dict(color="white"))
         

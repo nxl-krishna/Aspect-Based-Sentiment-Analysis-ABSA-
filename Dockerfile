@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM python:3.11-slim
 
 # Create a non-root user (Hugging Face Spaces requirement for Docker)
 RUN useradd -m -u 1000 user
@@ -17,8 +17,9 @@ WORKDIR $HOME/app
 COPY --chown=user . $HOME/app
 
 # Install Python dependencies
-# requirements.txt already includes the CPU-only PyTorch index URL
-RUN pip install --no-cache-dir -r requirements.txt
+# Install CPU-only PyTorch first so pip doesn't pull the multi-GB CUDA build
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Hugging Face Spaces exposes port 7860 by default
 EXPOSE 7860
