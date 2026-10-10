@@ -47,6 +47,8 @@ import time
 
 # Use GPU if available
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+torch.manual_seed(42)
+np.random.seed(42)
 print(f"Using device: {device}")
 
 try:
@@ -96,7 +98,7 @@ for tokens in train_df['text_tokens']:
 for tokens in train_df['aspect_tokens']:
     vocab.update(tokens)
 
-for word in vocab:
+for word in sorted(vocab):
     idx = len(word2idx)
     word2idx[word] = idx
     idx2word[idx] = word

@@ -68,7 +68,7 @@ for tokens in train_df['text'].apply(tokenize):
 for tokens in train_df['aspect'].apply(tokenize):
     vocab.update(tokens)
 
-for word in vocab:
+for word in sorted(vocab):
     idx = len(word2idx)
     word2idx[word] = idx
     idx2word[idx] = word

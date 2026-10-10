@@ -1,0 +1,125 @@
+{
+  "model": "C:\\Users\\krish\\Downloads\\projects\\AIML  DL project\\Aspect-Based Sentiment Analysis (ABSA)\\models\\absa-sentiment-deberta-v3-base",
+  "domains": {
+    "Restaurants": {
+      "n": 1120,
+      "accuracy": 0.8741071428571429,
+      "macro_f1": 0.7999972914910384,
+      "per_class": {
+        "negative": {
+          "precision": 0.8300970873786407,
+          "recall": 0.8724489795918368,
+          "f1": 0.8507462686567164,
+          "support": 196
+        },
+        "neutral": {
+          "precision": 0.7967479674796748,
+          "recall": 0.5,
+          "f1": 0.6144200626959248,
+          "support": 196
+        },
+        "positive": {
+          "precision": 0.8975979772439949,
+          "recall": 0.9752747252747253,
+          "f1": 0.934825543120474,
+          "support": 728
+        }
+      },
+      "confusion_matrix": {
+        "labels": [
+          "negative",
+          "neutral",
+          "positive"
+        ],
+        "matrix": [
+          [
+            171,
+            13,
+            12
+          ],
+          [
+            29,
+            98,
+            69
+          ],
+          [
+            6,
+            12,
+            710
+          ]
+        ]
+      }
+    },
+    "Laptops": {
+      "n": 638,
+      "accuracy": 0.8322884012539185,
+      "macro_f1": 0.7955276657204045,
+      "per_class": {
+        "negative": {
+          "precision": 0.7065868263473054,
+          "recall": 0.921875,
+          "f1": 0.8,
+          "support": 128
+        },
+        "neutral": {
+          "precision": 0.8032786885245902,
+          "recall": 0.5798816568047337,
+          "f1": 0.6735395189003437,
+          "support": 169
+        },
+        "positive": {
+          "precision": 0.9025787965616046,
+          "recall": 0.9237536656891495,
+          "f1": 0.9130434782608695,
+          "support": 341
+        }
+      },
+      "confusion_matrix": {
+        "labels": [
+          "negative",
+          "neutral",
+          "positive"
+        ],
+        "matrix": [
+          [
+            118,
+            7,
+            3
+          ],
+          [
+            40,
+            98,
+            31
+          ],
+          [
+            9,
+            17,
+            315
+          ]
+        ]
+      }
+    }
+  },
+  "accuracy_by_sentence_type": {
+    "multi-aspect, same sentiment": {
+      "accuracy": 0.89920724801812,
+      "n": 883
+    },
+    "single aspect": {
+      "accuracy": 0.8658088235294118,
+      "n": 544
+    },
+    "multi-aspect, mixed sentiment": {
+      "accuracy": 0.7401812688821753,
+      "n": 331
+    }
+  },
+  "error_pairs": {
+    "neutral -> positive": 100,
+    "neutral -> negative": 69,
+    "positive -> neutral": 29,
+    "negative -> neutral": 20,
+    "negative -> positive": 15,
+    "positive -> negative": 15
+  }
+}

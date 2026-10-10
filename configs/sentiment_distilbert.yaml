@@ -1,0 +1,10 @@
+name: distilbert
+model_name: distilbert-base-uncased
+epochs: 3
+lr: 5.0e-5
+batch_size: 16
+max_length: 128
+warmup_ratio: 0.1
+weight_decay: 0.01
+class_weights: false
+save_model: false

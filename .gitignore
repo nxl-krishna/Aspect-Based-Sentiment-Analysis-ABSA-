@@ -31,3 +31,7 @@ models/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Training logs and checkpoints
+logs/
+models/checkpoints/

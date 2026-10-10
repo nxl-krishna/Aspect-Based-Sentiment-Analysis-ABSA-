@@ -1,0 +1,13 @@
+-r requirements.txt
+# Training, evaluation and tests
+accelerate
+scikit-learn
+spacy
+matplotlib
+seaborn
+pyyaml
+beautifulsoup4
+lxml
+nbformat
+pytest
+httpx

@@ -1,0 +1,9 @@
+﻿name: deberta-v3-base
+model_name: microsoft/deberta-v3-base
+epochs: 5
+lr: 2.0e-5
+batch_size: 16
+max_length: 128
+warmup_ratio: 0.1
+weight_decay: 0.01
+class_weights: false

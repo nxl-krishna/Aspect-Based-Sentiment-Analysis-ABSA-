@@ -7,8 +7,9 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 URLS = {
     "Restaurants_Train.xml": "https://raw.githubusercontent.com/pedrobalage/SemevalAspectBasedSentimentAnalysis/master/semeval_data/Restaurants_Train_v2.xml",
     "Laptops_Train.xml": "https://raw.githubusercontent.com/pedrobalage/SemevalAspectBasedSentimentAnalysis/master/semeval_data/Laptop_Train_v2.xml",
-    "Restaurants_Test.xml": "https://raw.githubusercontent.com/pedrobalage/SemevalAspectBasedSentimentAnalysis/master/semeval_data/Restaurants_Test_Data_phaseB.xml",
-    "Laptops_Test.xml": "https://raw.githubusercontent.com/pedrobalage/SemevalAspectBasedSentimentAnalysis/master/semeval_data/Laptops_Test_Data_phaseB.xml"
+    # Gold-labelled test sets (the phaseB files published with the task have no polarity labels)
+    "Restaurants_Test.xml": "https://raw.githubusercontent.com/AlexYangLi/ABSA_Keras/master/raw_data/semeval14_restaurant/Restaurants_Test_Gold.xml",
+    "Laptops_Test.xml": "https://raw.githubusercontent.com/AlexYangLi/ABSA_Keras/master/raw_data/semeval14_laptop/Laptops_Test_Gold.xml"
 }
 
 RAW_DIR = os.path.join("data", "raw")

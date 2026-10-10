@@ -102,7 +102,7 @@ with tab1:
 # ----------------- TAB 2: BATCH ANALYTICS -----------------
 with tab2:
     st.header("Batch Upload & Analytics")
-    st.markdown("Upload a CSV with `text` and `aspect` columns to process hundreds of reviews instantly.")
+    st.markdown("Upload a CSV with a `text` column (aspects are extracted automatically), or `text` and `aspect` columns to score specific aspects.")
     
     uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
     

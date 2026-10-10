@@ -1,0 +1,432 @@
+{
+  "task": "sentiment-baselines",
+  "config": {
+    "seed": 1,
+    "epochs": 12,
+    "lr": 0.001,
+    "batch_size": 32,
+    "max_len": 60,
+    "aspect_len": 8,
+    "val_size": 0.1
+  },
+  "results": [
+    {
+      "model": "TF-IDF + Logistic Regression",
+      "train_time_s": 0.2436215877532959,
+      "test": {
+        "Restaurants": {
+          "n": 1120,
+          "accuracy": 0.7241071428571428,
+          "macro_f1": 0.6014920786779632,
+          "per_class": {
+            "negative": {
+              "precision": 0.5523809523809524,
+              "recall": 0.5918367346938775,
+              "f1": 0.5714285714285714,
+              "support": 196
+            },
+            "neutral": {
+              "precision": 0.43870967741935485,
+              "recall": 0.3469387755102041,
+              "f1": 0.38746438746438744,
+              "support": 196
+            },
+            "positive": {
+              "precision": 0.8304635761589404,
+              "recall": 0.8612637362637363,
+              "f1": 0.8455832771409305,
+              "support": 728
+            }
+          },
+          "confusion_matrix": {
+            "labels": [
+              "negative",
+              "neutral",
+              "positive"
+            ],
+            "matrix": [
+              [
+                116,
+                35,
+                45
+              ],
+              [
+                45,
+                68,
+                83
+              ],
+              [
+                49,
+                52,
+                627
+              ]
+            ]
+          }
+        },
+        "Laptops": {
+          "n": 638,
+          "accuracy": 0.5768025078369906,
+          "macro_f1": 0.5311997594281247,
+          "per_class": {
+            "negative": {
+              "precision": 0.3877551020408163,
+              "recall": 0.59375,
+              "f1": 0.4691358024691358,
+              "support": 128
+            },
+            "neutral": {
+              "precision": 0.47058823529411764,
+              "recall": 0.378698224852071,
+              "f1": 0.419672131147541,
+              "support": 169
+            },
+            "positive": {
+              "precision": 0.7450980392156863,
+              "recall": 0.6686217008797654,
+              "f1": 0.7047913446676971,
+              "support": 341
+            }
+          },
+          "confusion_matrix": {
+            "labels": [
+              "negative",
+              "neutral",
+              "positive"
+            ],
+            "matrix": [
+              [
+                76,
+                24,
+                28
+              ],
+              [
+                55,
+                64,
+                50
+              ],
+              [
+                65,
+                48,
+                228
+              ]
+            ]
+          }
+        }
+      }
+    },
+    {
+      "model": "TF-IDF + Linear SVM",
+      "train_time_s": 0.03854060173034668,
+      "test": {
+        "Restaurants": {
+          "n": 1120,
+          "accuracy": 0.7169642857142857,
+          "macro_f1": 0.5772448220794391,
+          "per_class": {
+            "negative": {
+              "precision": 0.5432692307692307,
+              "recall": 0.576530612244898,
+              "f1": 0.5594059405940595,
+              "support": 196
+            },
+            "neutral": {
+              "precision": 0.40601503759398494,
+              "recall": 0.2755102040816326,
+              "f1": 0.3282674772036474,
+              "support": 196
+            },
+            "positive": {
+              "precision": 0.8164313222079589,
+              "recall": 0.8736263736263736,
+              "f1": 0.8440610484406105,
+              "support": 728
+            }
+          },
+          "confusion_matrix": {
+            "labels": [
+              "negative",
+              "neutral",
+              "positive"
+            ],
+            "matrix": [
+              [
+                113,
+                33,
+                50
+              ],
+              [
+                49,
+                54,
+                93
+              ],
+              [
+                46,
+                46,
+                636
+              ]
+            ]
+          }
+        },
+        "Laptops": {
+          "n": 638,
+          "accuracy": 0.5987460815047022,
+          "macro_f1": 0.5329069355332178,
+          "per_class": {
+            "negative": {
+              "precision": 0.41379310344827586,
+              "recall": 0.5625,
+              "f1": 0.4768211920529801,
+              "support": 128
+            },
+            "neutral": {
+              "precision": 0.5145631067961165,
+              "recall": 0.3136094674556213,
+              "f1": 0.3897058823529412,
+              "support": 169
+            },
+            "positive": {
+              "precision": 0.7119113573407202,
+              "recall": 0.7536656891495601,
+              "f1": 0.7321937321937322,
+              "support": 341
+            }
+          },
+          "confusion_matrix": {
+            "labels": [
+              "negative",
+              "neutral",
+              "positive"
+            ],
+            "matrix": [
+              [
+                72,
+                12,
+                44
+              ],
+              [
+                56,
+                53,
+                60
+              ],
+              [
+                46,
+                38,
+                257
+              ]
+            ]
+          }
+        }
+      }
+    },
+    {
+      "model": "BiLSTM",
+      "train_time_s": 22.32152009010315,
+      "validation_macro_f1": 0.6626086510228029,
+      "test": {
+        "Restaurants": {
+          "n": 1120,
+          "accuracy": 0.7419642857142857,
+          "macro_f1": 0.6121512965049677,
+          "per_class": {
+            "negative": {
+              "precision": 0.5955056179775281,
+              "recall": 0.5408163265306123,
+              "f1": 0.5668449197860963,
+              "support": 196
+            },
+            "neutral": {
+              "precision": 0.559322033898305,
+              "recall": 0.336734693877551,
+              "f1": 0.42038216560509556,
+              "support": 196
+            },
+            "positive": {
+              "precision": 0.7997572815533981,
+              "recall": 0.9052197802197802,
+              "f1": 0.8492268041237113,
+              "support": 728
+            }
+          },
+          "confusion_matrix": {
+            "labels": [
+              "negative",
+              "neutral",
+              "positive"
+            ],
+            "matrix": [
+              [
+                106,
+                24,
+                66
+              ],
+              [
+                31,
+                66,
+                99
+              ],
+              [
+                41,
+                28,
+                659
+              ]
+            ]
+          }
+        },
+        "Laptops": {
+          "n": 638,
+          "accuracy": 0.6614420062695925,
+          "macro_f1": 0.5930847138258617,
+          "per_class": {
+            "negative": {
+              "precision": 0.47674418604651164,
+              "recall": 0.640625,
+              "f1": 0.5466666666666666,
+              "support": 128
+            },
+            "neutral": {
+              "precision": 0.5784313725490197,
+              "recall": 0.34911242603550297,
+              "f1": 0.4354243542435424,
+              "support": 169
+            },
+            "positive": {
+              "precision": 0.771978021978022,
+              "recall": 0.8240469208211144,
+              "f1": 0.7971631205673759,
+              "support": 341
+            }
+          },
+          "confusion_matrix": {
+            "labels": [
+              "negative",
+              "neutral",
+              "positive"
+            ],
+            "matrix": [
+              [
+                82,
+                14,
+                32
+              ],
+              [
+                59,
+                59,
+                51
+              ],
+              [
+                31,
+                29,
+                281
+              ]
+            ]
+          }
+        }
+      }
+    },
+    {
+      "model": "BiLSTM + Attention",
+      "train_time_s": 14.35061764717102,
+      "validation_macro_f1": 0.6764461774736384,
+      "test": {
+        "Restaurants": {
+          "n": 1120,
+          "accuracy": 0.7410714285714286,
+          "macro_f1": 0.5984289379737056,
+          "per_class": {
+            "negative": {
+              "precision": 0.594059405940594,
+              "recall": 0.6122448979591837,
+              "f1": 0.6030150753768844,
+              "support": 196
+            },
+            "neutral": {
+              "precision": 0.5444444444444444,
+              "recall": 0.25,
+              "f1": 0.34265734265734266,
+              "support": 196
+            },
+            "positive": {
+              "precision": 0.7983091787439613,
+              "recall": 0.907967032967033,
+              "f1": 0.8496143958868895,
+              "support": 728
+            }
+          },
+          "confusion_matrix": {
+            "labels": [
+              "negative",
+              "neutral",
+              "positive"
+            ],
+            "matrix": [
+              [
+                120,
+                16,
+                60
+              ],
+              [
+                40,
+                49,
+                107
+              ],
+              [
+                42,
+                25,
+                661
+              ]
+            ]
+          }
+        },
+        "Laptops": {
+          "n": 638,
+          "accuracy": 0.6661442006269592,
+          "macro_f1": 0.6036799590080015,
+          "per_class": {
+            "negative": {
+              "precision": 0.47282608695652173,
+              "recall": 0.6796875,
+              "f1": 0.5576923076923077,
+              "support": 128
+            },
+            "neutral": {
+              "precision": 0.6818181818181818,
+              "recall": 0.35502958579881655,
+              "f1": 0.4669260700389105,
+              "support": 169
+            },
+            "positive": {
+              "precision": 0.7595628415300546,
+              "recall": 0.8152492668621701,
+              "f1": 0.7864214992927864,
+              "support": 341
+            }
+          },
+          "confusion_matrix": {
+            "labels": [
+              "negative",
+              "neutral",
+              "positive"
+            ],
+            "matrix": [
+              [
+                87,
+                6,
+                35
+              ],
+              [
+                56,
+                60,
+                53
+              ],
+              [
+                41,
+                22,
+                278
+              ]
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

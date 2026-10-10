@@ -1,0 +1,129 @@
+{
+  "run": "sentiment-deberta-v3-base-seed2",
+  "task": "sentiment",
+  "config": {
+    "name": "deberta-v3-base",
+    "model_name": "microsoft/deberta-v3-base",
+    "epochs": 5,
+    "lr": 2e-05,
+    "batch_size": 16,
+    "max_length": 128,
+    "warmup_ratio": 0.1,
+    "weight_decay": 0.01,
+    "class_weights": false,
+    "bf16": true,
+    "val_size": 0.1,
+    "seed": 2,
+    "save_model": false
+  },
+  "train_time_s": 295.6108183860779,
+  "test": {
+    "Restaurants": {
+      "n": 1120,
+      "accuracy": 0.8669642857142857,
+      "macro_f1": 0.7934129732576923,
+      "per_class": {
+        "negative": {
+          "precision": 0.8217821782178217,
+          "recall": 0.8469387755102041,
+          "f1": 0.8341708542713567,
+          "support": 196
+        },
+        "neutral": {
+          "precision": 0.7019867549668874,
+          "recall": 0.5408163265306123,
+          "f1": 0.6109510086455331,
+          "support": 196
+        },
+        "positive": {
+          "precision": 0.9113428943937418,
+          "recall": 0.9601648351648352,
+          "f1": 0.9351170568561873,
+          "support": 728
+        }
+      },
+      "confusion_matrix": {
+        "labels": [
+          "negative",
+          "neutral",
+          "positive"
+        ],
+        "matrix": [
+          [
+            166,
+            23,
+            7
+          ],
+          [
+            29,
+            106,
+            61
+          ],
+          [
+            7,
+            22,
+            699
+          ]
+        ]
+      }
+    },
+    "Laptops": {
+      "n": 638,
+      "accuracy": 0.8260188087774295,
+      "macro_f1": 0.7959576294663302,
+      "per_class": {
+        "negative": {
+          "precision": 0.7177914110429447,
+          "recall": 0.9140625,
+          "f1": 0.8041237113402062,
+          "support": 128
+        },
+        "neutral": {
+          "precision": 0.7464788732394366,
+          "recall": 0.6272189349112426,
+          "f1": 0.6816720257234726,
+          "support": 169
+        },
+        "positive": {
+          "precision": 0.9129129129129129,
+          "recall": 0.8914956011730205,
+          "f1": 0.9020771513353115,
+          "support": 341
+        }
+      },
+      "confusion_matrix": {
+        "labels": [
+          "negative",
+          "neutral",
+          "positive"
+        ],
+        "matrix": [
+          [
+            117,
+            10,
+            1
+          ],
+          [
+            35,
+            106,
+            28
+          ],
+          [
+            11,
+            26,
+            304
+          ]
+        ]
+      }
+    }
+  },
+  "validation": {
+    "eval_loss": 0.5902951955795288,
+    "eval_accuracy": 0.8597972972972973,
+    "eval_macro_f1": 0.8211946968949503,
+    "eval_runtime": 1.4903,
+    "eval_samples_per_second": 397.224,
+    "eval_steps_per_second": 6.71,
+    "epoch": 5.0
+  }
+}

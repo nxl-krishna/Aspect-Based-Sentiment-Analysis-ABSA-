@@ -1,0 +1,47 @@
+{
+  "run": "extraction-deberta-v3-base-seed42",
+  "task": "extraction",
+  "config": {
+    "name": "deberta-v3-base",
+    "model_name": "microsoft/deberta-v3-base",
+    "epochs": 6,
+    "lr": 3e-05,
+    "batch_size": 16,
+    "max_length": 128,
+    "warmup_ratio": 0.1,
+    "weight_decay": 0.01,
+    "bf16": true,
+    "val_size": 0.1,
+    "seed": 42,
+    "save_model": true
+  },
+  "train_time_s": 336.25714635849,
+  "validation": {
+    "eval_loss": 0.11506108194589615,
+    "eval_span_f1": 0.8578856152512998,
+    "eval_span_precision": 0.8319327731092437,
+    "eval_span_recall": 0.8855098389982111,
+    "eval_runtime": 1.1492,
+    "eval_samples_per_second": 529.044,
+    "eval_steps_per_second": 8.701,
+    "epoch": 6.0
+  },
+  "test": {
+    "Restaurants": {
+      "precision": 0.8924914675767918,
+      "recall": 0.9223985890652557,
+      "f1": 0.9071986123156981,
+      "n_gold": 1134,
+      "n_pred": 1172,
+      "tp": 1046
+    },
+    "Laptops": {
+      "precision": 0.8721109399075501,
+      "recall": 0.8654434250764526,
+      "f1": 0.8687643898695318,
+      "n_gold": 654,
+      "n_pred": 649,
+      "tp": 566
+    }
+  }
+}

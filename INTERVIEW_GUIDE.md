@@ -1,28 +1,81 @@
-# Customer Feedback Intelligence — Interview Guide
+# Customer Feedback Intelligence: Interview Guide
 
-This guide contains the key talking points you need to confidently explain this project in a machine learning or data science interview.
+Talking points for explaining this project in an ML / data science interview. Every number here comes
+from [reports/RESULTS.md](reports/RESULTS.md) and [reports/ERROR_ANALYSIS.md](reports/ERROR_ANALYSIS.md).
 
-## 1. Project Overview & Business Value
-**What to say:** "I built an Aspect-Based Sentiment Analysis (ABSA) system. Standard sentiment analysis just tells you a review is 'Negative'. My system tells you exactly *what* the customer is unhappy about. For example, 'The battery life is incredible but the screen is too dim' is processed to extract 'battery' (Positive) and 'screen' (Negative). This gives product managers actionable intelligence instead of just an overall score."
+## 1. The 30-second pitch
 
-## 2. The Data Pipeline (Phase 1)
-**What to say:** "I started with the SemEval-2014 Task 4 dataset, which is the academic gold standard for this problem. It was provided in raw XML. I built a robust parsing pipeline to extract the sentences, the aspect terms, and the polarity. I used `spaCy` for tokenization and cleaning because it's much faster and more production-ready than NLTK."
+"I built an end-to-end aspect-based sentiment analysis system. You paste a review like *'the pasta was
+delicious but the waiter was rude'* and it returns *pasta: positive, waiter: negative*. It's two models I
+fine-tuned myself: a DeBERTa-v3 token classifier that extracts aspect terms, and a DeBERTa-v3 sentence-pair
+classifier that scores the sentiment toward each one. On the official SemEval-2014 test sets the extractor
+gets 90.8 span F1 on restaurants and 86.0 on laptops, and the sentiment model gets 87.1% and 82.7% accuracy.
+It's deployed as a Gradio app on Hugging Face Spaces and as a FastAPI service."
 
-## 3. The Baseline (Phase 2)
-**What to say:** "I didn't just jump to deep learning. A good engineer establishes a baseline. I used TF-IDF vectorization and a Linear SVM. It achieved about ~71% accuracy, but struggled with complex syntax like double negatives and long-range dependencies."
+## 2. Why ABSA instead of normal sentiment analysis
 
-## 4. Deep Learning & The Attention Mechanism (Phase 3 & 4)
-**What to say:** "To improve performance, I built a custom PyTorch architecture from scratch. I used a Bidirectional LSTM (BiLSTM) so the network could read the sentence forwards and backwards. More importantly, I mathematically implemented a **Custom Attention Layer**. 
-By feeding both the sentence and the target aspect into the attention mechanism, the model dynamically learns to *ignore* irrelevant words and focus entirely on the adjectives modifying the specific aspect. This pushed accuracy to ~74.4%."
+A review is often mixed. Overall sentiment says "neutral"; ABSA says *what* is good and *what* is bad,
+which is what a product or operations team can act on.
 
-## 5. State of the Art Transformers (Phase 5)
-**What to say:** "Finally, I implemented the current State-of-the-Art approach. I used HuggingFace to fine-tune a pre-trained Transformer (like BERT/DeBERTa). Because Transformers use multi-headed Self-Attention and are pre-trained on billions of words, the model inherently understands English grammar. To pass both the sentence and the aspect to the model, I used the `[CLS] text [SEP] aspect [SEP]` architecture. This blew the previous models away, achieving ~82% accuracy."
+## 3. Data and evaluation protocol
 
-## 6. Error Analysis & Interpretability (Phase 6)
-**What to say:** "I didn't treat the model like a black box. I wrote scripts to extract the attention weights ($\alpha$) directly from my PyTorch network and plotted them as heatmaps. I could visually prove to stakeholders that when predicting the sentiment of 'service', the model was correctly assigning the highest mathematical weight to the word 'terrible'. I also identified the model's main failure modes: implicit sarcasm and complex double negatives."
+- SemEval-2014 Task 4, restaurants + laptops: about 5,900 training aspects and 1,758 test aspects.
+- I evaluate on the **official gold test sets** so the numbers are comparable to published work, and pick
+  epochs on a stratified 10% validation split carved from train (never on test).
+- Every model is run with **3 seeds** and reported as mean ± std. This mattered: the BiLSTM-vs-attention
+  gap on restaurants turned out to be within seed noise.
+- Conflict labels are excluded (standard practice).
 
-## 7. The Production App (Phases 8-11)
-**What to say:** "A model is useless if it just sits in a Jupyter Notebook. I engineered a production inference pipeline using object-oriented Python. I deployed this pipeline behind a **FastAPI** REST backend because of its high performance and async capabilities. Finally, I built a premium **Streamlit** dashboard that allows users to type in single reviews or upload bulk CSVs to get dynamic Plotly analytics of their customer feedback."
+## 4. Aspect extraction (the part most ABSA tutorials skip)
 
----
-**Good luck! You've built an incredibly impressive, end-to-end ML project!**
+- Framed as BIO token classification (B-ASP, I-ASP, O).
+- The labels come as character offsets, but the model sees subword tokens, so I project spans onto tokens
+  with the tokenizer's offset mapping and decode predictions back to exact character spans.
+- I verified the projection is lossless (100% round-trip on the test sets) before training, so any error
+  is the model's, not the preprocessing's.
+- Metric: exact-match span F1, the official subtask metric. Partial overlaps count as misses.
+
+## 5. Aspect sentiment
+
+- Input: `[CLS] review [SEP] aspect [SEP]`, so self-attention can link "rude" to "waiter".
+- Truncation cuts only the review, never the aspect.
+- The progression I benchmarked (Laptops accuracy): TF-IDF + LR 57.7 → BiLSTM 64.5 → BiLSTM + attention
+  65.4 → DistilBERT 77.7 → DeBERTa-v3 82.7.
+- The attention layer is implemented from scratch: `u_i = tanh(W_h h_i + W_a v_a)`, `alpha = softmax(w^T u)`,
+  `r = sum alpha_i h_i`, where `v_a` is the mean aspect embedding and padding is masked before the softmax.
+
+## 6. Error analysis (have this ready, it's the strongest signal of judgment)
+
+- **Mixed-sentiment sentences are the hard case**: 74.0% accuracy vs 89.9% when all aspects share a sentiment.
+- **Neutral is the bottleneck**: 68% of errors are neutral aspects predicted as positive or negative.
+- Many confident "errors" are wishes or descriptions: "I *needed* a laptop with a nice screen" (gold:
+  neutral, predicted: positive). The model reacts to "nice" without recognising the hypothetical.
+- **I tested a fix and it didn't work**: class-weighted loss changed neutral F1 by under 0.5 points across
+  3 seeds. Conclusion: the problem is ambiguity, not class imbalance. Next steps I'd try: data augmentation
+  with hypothetical/irrealis sentences, or more context than one sentence.
+
+## 7. A debugging story
+
+"My first DeBERTa run predicted the majority class for everything. I ruled out the data pipeline by
+running DistilBERT through the same script, which learned fine. Then I ran a 64-example overfitting test:
+DeBERTa's loss went to NaN within 8 steps. The cause was that Transformers 5 keeps the checkpoint's stored
+dtype, and deberta-v3-base is stored in fp16, so it was training in pure fp16 with no fp32 master weights.
+Loading in fp32 and using bf16 autocast fixed it."
+
+## 8. Engineering
+
+- YAML configs, fixed seeds, JSON results per run, one script to reproduce everything.
+- 20 pytest tests (BIO edge cases, metrics, parsing, every API endpoint with fake models) in GitHub Actions.
+- FastAPI endpoints are sync so blocking inference runs in a threadpool instead of stalling the event loop;
+  proper 4xx vs 5xx errors; batched GPU inference.
+- Latency: 59 ms per review on an RTX 3050 laptop GPU, 121 reviews/s batched, 158 ms on CPU.
+
+## 9. Likely questions
+
+- **Why DeBERTa over BERT/RoBERTa?** Disentangled attention (separate content and position embeddings) and
+  a stronger pre-training objective; it's consistently ahead on GLUE-style benchmarks at the same size.
+  I'd confirm with an ablation if I had more time; DistilBERT is the comparison I did run (−5 points on laptops).
+- **Why are laptops harder?** More technical vocabulary and more neutral, descriptive mentions
+  ("the screen is 15 inches"); the non-transformer models drop much more on laptops than on restaurants.
+- **What would you do next?** Joint extraction + sentiment in one model, implicit aspects, domain adaptation
+  to new product categories, and quantization/ONNX for cheaper CPU serving.
